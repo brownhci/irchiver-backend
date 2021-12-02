@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link href="{{ url_for('static',filename='bootstrap.min.css') }}" rel="stylesheet">
+
+		<title>irchiver - Your Personal Web Archive</title>
+	</head>
+	<body>
+		<nav class="navbar navbar-dark bg-primary">
+			<div class="container-fluid">
+				<a class="navbar-brand" href="https://irchiver.com/">Irchiver</a>
+			</div>
+		</nav>
+		<div class="container">
+			<h1 class="py-4">Irchiver</h1>
+		</div>
+		<div class="container">
+			<form method="POST">
+				Include in search:
+				<div class="row pt-2">
+	    			<div class="col">
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" value="" id="screenshot-ocr" name="screenshot-ocr" {% if not screenshot_ocr_unchecked %}checked{% endif %}>
+							<label class="form-check-label" for="screenshot-ocr">Screenshot text recognition (includes dynamically-loaded text, text in images)</label>
+						</div>
+					</div>
+				</div>
+				<div class="row pt-2">
+	    			<div class="col">
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" value="" id="page-source" name="page-source" {% if not page_source_unchecked %}checked{% endif %}>
+							<label class="form-check-label" for="page-source">Full page source (includes text covered by other elements, invisible/alt text, offscreen text)</label>
+						</div>
+					</div>
+				</div>
+				<div class="row pt-2">
+	    			<div class="col">
+						<div class="input-group">
+							<input type="text" name="query" value="{{ query }}" class="form-control" placeholder="Enter search terms" />
+							<button type="submit" class="btn btn-primary">
+								Search
+							</button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="container">
+			{% if n_results %}
+				{% if n_results > 20 %}
+					<p>20 results shown out of {{ n_results }} results returned</p>
+				{% else %}
+					<p>{{ n_results }} results returned</p>
+				{% endif %}
+			{% endif %}
+			{% for result in results %}
+				{% if result.same_url %}
+				<div class="accordion" id="accordionExample">
+					<div class="accordion-item">
+						<h2 class="accordion-header" id="headingOne">
+							<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+								More from {{ result.url[:100] + ("..." if result.url|length > 100 else "") }}
+							</button>
+						</h2>
+						<div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+							<div class="accordion-body">
+				{% endif %}
+				<div class="row py-2">
+					<div class="col-3">
+						<a href="{{ result.screenshot }}"><img class="img-thumbnail" src="{{ result.screenshot }}"></a>
+					</div>
+					{% if result.same_url %}
+					<div class="col-8">
+					{% else %}
+					<div class="col-9">
+					{% endif %}
+						<h6>{{ result.title }}</h6>
+						<a href="{{ result.url }}">{{ result.url[:100] + ("..." if result.url|length > 100 else "") }}</a>
+						<p>{{ result.timestamp }}</p>
+						<p>
+							{% if result.result_type == 0 %}
+								In: Full page source
+							{% elif result.result_type == 1 %}
+								In: Screenshot text recognition
+							{% elif result.result_type == 2 %}
+								In: Full page source and Screenshot text recognition
+							{% else %}
+								Error: Unknown result type
+							{% endif %}
+						</p>
+					</div>
+				</div>
+				{% if result.same_url %}
+							</div>
+						</div>
+					</div>
+				</div>
+				{% endif %}
+			{% endfor %}
+		</div>
+		<div class="container py-4 text-end">
+			<footer>{{ n_indexed }} pages indexed, most recently {{ most_recent }}</footer>
+		</div>
+		
+		<script src="{{ url_for('static',filename='bootstrap.min.js') }}"></script>
+	</body>
+</html>
